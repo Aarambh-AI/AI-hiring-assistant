@@ -1,0 +1,6 @@
+openai
+instructor
+PyPDF2
+python-docx
+jsonref
+tiktoken
