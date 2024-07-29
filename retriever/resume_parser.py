@@ -34,6 +34,12 @@ class ResumeFormat(BaseModel):
         )
     )
 
+    summary: str = Field(
+         description=dedent(
+              "a brief summary of the candidates work experience."
+         )
+    )
+
     gender: str = Field(
         description=dedent(
             "gender of the candidate from the provided resume."
@@ -94,7 +100,7 @@ class ResumeFormat(BaseModel):
     )
     workbackground: List[WorkReference] = Field(
         description=dedent("""\
-        The list of work background from the provided resume.
+        The list of all work backgrounds / projects from the provided resume.
         """)
         )
 

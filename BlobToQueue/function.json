@@ -1,0 +1,19 @@
+{
+    "scriptFile": "__init__.py",
+    "bindings": [
+      {
+        "name": "myblob",
+        "type": "blobTrigger",
+        "direction": "in",
+        "path": "resume-files",
+        "connection": "AzureWebJobsStorage"
+      },
+      {
+        "name": "msg",
+        "type": "queue",
+        "direction": "out",
+        "queueName": "file-processing-queue",
+        "connection": "AzureWebJobsStorage"
+      }
+    ]
+  }

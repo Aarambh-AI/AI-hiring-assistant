@@ -4,3 +4,8 @@ PyPDF2
 python-docx
 jsonref
 tiktoken
+flask
+azure-storage-queue
+azure-storage-blob
+azure-identity
+azure-functions
