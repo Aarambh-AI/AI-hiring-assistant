@@ -8,28 +8,6 @@ import os
 from utils import mongo_utils
 
 
-# def process_resume():
-#     if 'file' not in request.files:
-#         return jsonify({"error": "No file part"}), 400
-
-#     file = request.files['file']
-
-#     if file.filename == '':
-#         return jsonify({"error": "No selected file"}), 400
-
-#     # Save the file temporarily
-#     file_path = f"/tmp/{file.filename}"
-#     file.save(file_path)
-
-#     # Read text from the file
-#     text = file_reader.read_text(file_path)
-
-#     if text:
-#         json_data = construct_hailey_response_data(resume=text)
-#         return jsonify(json_data)
-#     else:
-#         return jsonify({"error": "Failed to read text from the file"}), 500
-
 def main(msg: func.QueueMessage):
     logging.info('Python queue trigger function processed a queue item.')
     out=json.loads(msg.get_body().decode('utf-8'))
@@ -54,14 +32,14 @@ def main(msg: func.QueueMessage):
     blob_client = blob_service_client.get_blob_client(container="resume-files", blob=file_name)
     blob_data = blob_client.download_blob().readall()
 
-    # Process the blob data (implement your processing logic here)
+    # Process the blob data (processing logic here)
     try:
         file_text = file_reader.convert_file_to_text(file_name, blob_data)
         if file_text:
             json_data = construct_hailey_response_data(resume=file_text)
             cosmos_util = mongo_utils.CosmosMongoUtil()
             cosmos_util.insert_document(json_data)
-            logging.info(json.dumps(json_data))
+            logging.info(json_data)
         else:
             logging.error({"error": "Failed to read text from the file"})
 
