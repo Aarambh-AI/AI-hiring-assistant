@@ -1,10 +1,11 @@
-# from reader import file_reader
-# from retriever.resume_parser import construct_hailey_response_data
+from reader import file_reader
+from retriever.resume_parser import construct_hailey_response_data
 import azure.functions as func
 import logging
 import json
 from azure.storage.blob import BlobServiceClient
 import os
+from utils import mongo_utils
 
 
 # def process_resume():
@@ -54,7 +55,19 @@ def main(msg: func.QueueMessage):
     blob_data = blob_client.download_blob().readall()
 
     # Process the blob data (implement your processing logic here)
-    print(blob_data.decode('utf-8'))
+    try:
+        file_text = file_reader.convert_file_to_text(file_name, blob_data)
+        if file_text:
+            json_data = construct_hailey_response_data(resume=file_text)
+            cosmos_util = mongo_utils.CosmosMongoUtil()
+            cosmos_util.insert_document(json_data)
+            logging.info(json.dumps(json_data))
+        else:
+            logging.error({"error": "Failed to read text from the file"})
+
+        print(file_text)
+    except ValueError as e:
+        print(f"Error: {str(e)}")
 
 
     logging.info(result)

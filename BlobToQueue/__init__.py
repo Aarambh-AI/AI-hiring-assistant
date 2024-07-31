@@ -8,9 +8,9 @@ def main(myblob: func.InputStream, msg: func.Out[str])-> func.HttpResponse:
                 f"Name: {myblob.name}"
                 f"Blob Size: {myblob.length} bytes")
     
-    
+    blob_name = myblob.name.split('/')[-1]
     try:
-        message = json.dumps({"filename":myblob.name, "size":myblob.length})
+        message = json.dumps({"filename":blob_name, "size":myblob.length})
         msg.set(message)
         logging.info(f"Message sent to queue: {message}")
         
