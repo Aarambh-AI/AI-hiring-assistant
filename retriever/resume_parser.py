@@ -89,7 +89,7 @@ class ResumeFormat(BaseModel):
 
     keySkills: list = Field(
         description=dedent("""\
-            The list of key skills of the candidate from the provided resume.
+            The list of skills of the candidate from the provided resume.
             """)
     )
 
@@ -106,7 +106,7 @@ class ResumeFormat(BaseModel):
 
 
 
-def construct_hailey_response_data(resume=None):
+def construct_response_data(resume=None):
     # STEP 1: Send the question and context to LLM
     system_content = dedent("""
         You are an expert in parsing resume. extract all the relevant fields only from the provided information.

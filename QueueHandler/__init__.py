@@ -1,5 +1,5 @@
 from reader import file_reader
-from retriever.resume_parser import construct_hailey_response_data
+from retriever.resume_parser import construct_response_data
 import azure.functions as func
 import logging
 import json
@@ -36,7 +36,7 @@ def main(msg: func.QueueMessage):
     try:
         file_text = file_reader.convert_file_to_text(file_name, blob_data)
         if file_text:
-            json_data = construct_hailey_response_data(resume=file_text)
+            json_data = construct_response_data(resume=file_text)
             cosmos_util = mongo_utils.CosmosMongoUtil()
             cosmos_util.insert_document(json_data)
             logging.info(json_data)

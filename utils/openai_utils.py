@@ -4,9 +4,9 @@ import tiktoken
 import json
 
 openai_client = AzureOpenAI(
-    api_key="e06832d6f27b43b1a53729ec3b95a91a",
-    api_version="2023-12-01-preview",
-    azure_endpoint="https://gpt-test-service.openai.azure.com/",
+    api_key="12e9ae31c8d64f2fb754efdb9f7a8a52",
+    api_version="2024-02-01",
+    azure_endpoint="https://api-openai-service.openai.azure.com/",
 )
 
 # Patch the OpenAI client
@@ -14,7 +14,7 @@ openai_client = instructor.from_openai(openai_client)
 
 def generate_llm_response(messages, response_model=None):
   response = openai_client.chat.completions.create(
-              model="gpt-35-turbo-16k",
+              model="gpt-4o-mini",
               temperature=0,
               seed=123456789,
               messages=messages,
