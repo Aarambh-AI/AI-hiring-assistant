@@ -7,6 +7,26 @@ from azure.storage.blob import BlobServiceClient
 import os
 from utils import mongo_utils
 
+def upload_resume_to_db(json_data):
+    # Assuming email is the unique identifier
+    email = json_data.get('emails', [])[0]
+
+    if not email:
+        raise ValueError("Resume must contain an email address as a unique identifier.")
+    cosmos_util = mongo_utils.CosmosMongoUtil()
+    # Check if a document with the same email already exists
+    existing_resume = cosmos_util.find_document({"emails": email})
+
+    if existing_resume:
+        # Update the existing document
+        cosmos_util.update_document({"_id": existing_resume["_id"]}, json_data)
+        logging.info(f"Resume for {email} updated.")
+    else:
+        # Insert new document
+        cosmos_util.insert_document(json_data)
+        logging.info(f"Resume for {email} inserted.")
+
+
 
 def main(msg: func.QueueMessage):
     logging.info('Python queue trigger function processed a queue item.')
@@ -36,14 +56,12 @@ def main(msg: func.QueueMessage):
     try:
         file_text = file_reader.convert_file_to_text(file_name, blob_data)
         if file_text:
-            json_data = construct_response_data(resume=file_text)
-            cosmos_util = mongo_utils.CosmosMongoUtil()
-            cosmos_util.insert_document(json_data)
+            json_data = construct_response_data(resume=file_text, container="resume-files", blob=file_name)
+            upload_resume_to_db(json_data=json_data)
             logging.info(json_data)
         else:
             logging.error({"error": "Failed to read text from the file"})
 
-        print(file_text)
     except ValueError as e:
         print(f"Error: {str(e)}")
 

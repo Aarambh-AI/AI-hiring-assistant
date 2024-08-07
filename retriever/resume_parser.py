@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Literal
 import json
 from utils import openai_utils
+import os
 
 
 class EducationReference(BaseModel):
@@ -106,7 +107,7 @@ class ResumeFormat(BaseModel):
 
 
 
-def construct_response_data(resume=None):
+def construct_response_data(resume, container, blob):
     # STEP 1: Send the question and context to LLM
     system_content = dedent("""
         You are an expert in parsing resume. extract all the relevant fields only from the provided information.
@@ -129,6 +130,13 @@ def construct_response_data(resume=None):
     llm_answer = openai_utils.generate_llm_response(
         messages, response_model=ResumeFormat
     ).model_dump()
+
+    blob_details = {
+         "connection_string": os.environ['AzureWebJobsStorage'],
+         "container":container,
+         "blob":blob 
+    }
+    llm_answer["blob_details"]=blob_details
 
     print(llm_answer)
     return llm_answer

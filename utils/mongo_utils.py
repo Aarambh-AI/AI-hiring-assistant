@@ -5,8 +5,8 @@ import os
 
 class CosmosMongoUtil:
     def __init__(self):
-        self.connection_string = "mongodb://cosmos-db-mongodb:XLeGElgW8prWnDA33bWYtyKymmTKXWwu0dC7AessAcCX3UzQ1uY8dFuZgzSqktBghGf03Fi7bmH3ACDbsrnUJg==@cosmos-db-mongodb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@cosmos-db-mongodb@"
-        self.database_name = "Dev-Db"
+        self.connection_string = os.environ["MONGO_CONNECTION_STRING"]
+        self.database_name = os.environ["MONGO_DATABASE_NAME"]
         self.collection_name = "Candidate_Data"
         self.client = None
         self.db = None
@@ -30,6 +30,18 @@ class CosmosMongoUtil:
             return result.inserted_id
         except PyMongoError as e:
             logging.error(f"Error inserting document: {str(e)}")
+            raise
+
+    def update_document(self, query, update_data):
+        try:
+            result = self.collection.update_one(query, {'$set': update_data})
+            if result.modified_count > 0:
+                logging.info(f"Document updated with id: {query['_id']}")
+            else:
+                logging.info("No documents matched the query. Document not updated.")
+            return result.modified_count
+        except PyMongoError as e:
+            logging.error(f"Error updating document: {str(e)}")
             raise
 
     def insert_multiple_documents(self, documents):
