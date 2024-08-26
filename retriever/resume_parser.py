@@ -137,6 +137,18 @@ def construct_response_data(resume, container, blob):
          "blob":blob 
     }
     llm_answer["blob_details"]=blob_details
+    json_data = generate_embeddings(llm_answer)
+    
+    return json_data
 
-    print(llm_answer)
-    return llm_answer
+def concatenate_work_background(work_background):
+    return " ".join(
+        [f"{job['companyName']} {job['location']} {job['industry']} {job['title']} {job['startDate']} {job['endDate']} {job['job_description']}"
+         for job in work_background]
+    )
+
+def generate_embeddings(resume_data):
+    text = concatenate_work_background(resume_data['workbackground'])
+    embeddings = openai_utils.generate_text_embeddings(text)
+    resume_data["embeddings"] = embeddings
+    return resume_data

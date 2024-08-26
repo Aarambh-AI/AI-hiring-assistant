@@ -57,6 +57,7 @@ def main(msg: func.QueueMessage):
         file_text = file_reader.convert_file_to_text(file_name, blob_data)
         if file_text:
             json_data = construct_response_data(resume=file_text, container="resume-files", blob=file_name)
+
             upload_resume_to_db(json_data=json_data)
             logging.info(json_data)
         else:
@@ -67,3 +68,4 @@ def main(msg: func.QueueMessage):
 
 
     logging.info(result)
+

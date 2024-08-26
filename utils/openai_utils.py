@@ -11,10 +11,14 @@ openai_client = AzureOpenAI(
 )
 
 # Patch the OpenAI client
-openai_client = instructor.from_openai(openai_client)
+instructor_openai_client = instructor.from_openai(openai_client)
+
+def generate_text_embeddings(text):
+   embeddings = openai_client.embeddings.create(input = [text], model=os.environ["EMBEDDING_MODEL_NAME"]).data[0].embedding
+   return embeddings
 
 def generate_llm_response(messages, response_model=None):
-  response = openai_client.chat.completions.create(
+  response = instructor_openai_client.chat.completions.create(
               model=os.environ["LLM_MODEL_NAME"],
               temperature=0,
               seed=123456789,
@@ -27,3 +31,5 @@ def count_tokens(arr_data):
     encoding = tiktoken.get_encoding("cl100k_base")
     num_tokens = len(encoding.encode(json.dumps(arr_data)))
     return num_tokens
+
+

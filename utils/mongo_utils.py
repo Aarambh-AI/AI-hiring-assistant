@@ -7,7 +7,7 @@ class CosmosMongoUtil:
     def __init__(self):
         self.connection_string = os.environ["MONGO_CONNECTION_STRING"]
         self.database_name = os.environ["MONGO_DATABASE_NAME"]
-        self.collection_name = "Candidate_Data"
+        self.collection_name = "candidate_data"
         self.client = None
         self.db = None
         self.collection = None
@@ -64,6 +64,18 @@ class CosmosMongoUtil:
         except PyMongoError as e:
             logging.error(f"Error finding document: {str(e)}")
             raise
+    
+    def find_many(self, query):
+        try:
+            document = self.collection.find(query)
+            if document:
+                logging.info("Documents found")
+            else:
+                logging.info("No document matches the query")
+            return document
+        except PyMongoError as e:
+            logging.error(f"Error finding document: {str(e)}")
+            raise
 
     def delete_document(self, query):
         try:
@@ -75,6 +87,18 @@ class CosmosMongoUtil:
             return result.deleted_count
         except PyMongoError as e:
             logging.error(f"Error deleting document: {str(e)}")
+            raise
+    
+    def aggregate_query(self, pipeline):
+        try:
+            result = self.collection.aggregate(pipeline)
+            if result:
+                logging.info("results found")
+            else:
+                logging.info("No results found")
+            return result
+        except PyMongoError as e:
+            logging.error(f"Error running aggregate query: {str(e)}")
             raise
 
 if __name__ == "__main__":
