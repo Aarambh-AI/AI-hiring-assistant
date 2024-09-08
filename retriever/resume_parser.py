@@ -4,6 +4,7 @@ from typing import List, Literal
 import json
 from utils import openai_utils
 import os
+from retriever import profile_fetcher as profile_fetcher
 
 
 class EducationReference(BaseModel):
@@ -69,6 +70,12 @@ class ResumeFormat(BaseModel):
             "list mail ids of the candidate from the provided resume."
         )
     )
+    linkedin_url: str = Field(
+         description=dedent("""\
+                            The linkedin url of the candidate from the provided resume.
+                            The url has linkedin.com in it.
+                    """)
+        )
 
     currentLocation: str = Field(
         description=dedent(
@@ -136,8 +143,20 @@ def construct_response_data(resume, container, blob):
          "container":container,
          "blob":blob 
     }
+
     llm_answer["blob_details"]=blob_details
+    candidate_name = llm_answer['name']
+    candidate_title = llm_answer['role']
+
+    if llm_answer["linkedin_url"] == '':
+         llm_answer["linkedin_verified"] = False
+         llm_answer['top_linkedin_suggestions'] = profile_fetcher.fetch_profile(candidate_name, candidate_title)
+    else:
+         llm_answer["linkedin_verified"] = True
+
+
     json_data = generate_embeddings(llm_answer)
+
     
     return json_data
 
@@ -146,6 +165,7 @@ def concatenate_work_background(work_background):
         [f"{job['companyName']} {job['location']} {job['industry']} {job['title']} {job['startDate']} {job['endDate']} {job['job_description']}"
          for job in work_background]
     )
+ 
 
 def generate_embeddings(resume_data):
     text = concatenate_work_background(resume_data['workbackground'])
