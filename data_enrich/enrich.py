@@ -1,4 +1,4 @@
-from utils import mongo_utils
+from utils.mongo_utils import CosmosMongoUtil
 from textwrap import dedent
 from pydantic import BaseModel, Field
 from typing import List, Literal
@@ -7,7 +7,7 @@ import requests
 import os
 from bson.objectid import ObjectId
 
-mongo_client = mongo_utils.CosmosMongoUtil()
+mongo_client = CosmosMongoUtil(collection="candidate_data")
 
 def scrape_data(linkedin_url):
     url = os.environ["OSINT_URL"]

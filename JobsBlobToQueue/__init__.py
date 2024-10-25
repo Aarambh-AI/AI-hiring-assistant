@@ -4,7 +4,7 @@ import json
 
 
 def main(myblob: func.InputStream, msg: func.Out[str])-> func.HttpResponse:
-    logging.info(f"Python blob trigger function processed blob"
+    logging.info(f"Python blob trigger function processed job-files blob"
                 f"Name: {myblob.name}"
                 f"Blob Size: {myblob.length} bytes")
     

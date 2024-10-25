@@ -4,10 +4,10 @@ import logging
 import os
 
 class CosmosMongoUtil:
-    def __init__(self):
+    def __init__(self, collection):
         self.connection_string = os.environ["MONGO_CONNECTION_STRING"]
         self.database_name = os.environ["MONGO_DATABASE_NAME"]
-        self.collection_name = "candidate_data"
+        self.collection_name =collection
         self.client = None
         self.db = None
         self.collection = None

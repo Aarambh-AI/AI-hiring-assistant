@@ -10,3 +10,4 @@ azure-identity
 azure-functions
 pymongo
 google-api-python-client
+docx2txt

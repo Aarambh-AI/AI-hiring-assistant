@@ -114,7 +114,7 @@ class ResumeFormat(BaseModel):
 
 
 
-def construct_response_data(resume, container, blob):
+def construct_response_data(resume, container, blob, meta_data = None):
     # STEP 1: Send the question and context to LLM
     system_content = dedent("""
         You are an expert in parsing resume. extract all the relevant fields only from the provided information.
@@ -147,6 +147,7 @@ def construct_response_data(resume, container, blob):
     llm_answer["blob_details"]=blob_details
     candidate_name = llm_answer['name']
     candidate_title = llm_answer['role']
+    llm_answer.update(meta_data)
 
     if llm_answer["linkedin_url"] == '':
          llm_answer["linkedin_verified"] = False
@@ -154,11 +155,13 @@ def construct_response_data(resume, container, blob):
     else:
          llm_answer["linkedin_verified"] = True
 
-
-    json_data = generate_embeddings(llm_answer)
-
+    if not llm_answer['workbackground']:
+        return llm_answer
+    else:
+        json_data = generate_embeddings(llm_answer)
+        return json_data
     
-    return json_data
+    
 
 def concatenate_work_background(work_background):
     return " ".join(
