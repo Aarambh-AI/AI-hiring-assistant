@@ -7,16 +7,19 @@ from utils import mongo_utils, openai_utils
 
 
 # Function to construct a response with consistent structure
-def search_similar(text):
+def search_similar(job_id):
+    objInstance = ObjectId(job_id)
+    cosmos_util = mongo_utils.CosmosMongoUtil(collection='job_data')
+    doc = cosmos_util.find_document({"_id":objInstance})
     
-    embeddings = openai_utils.generate_text_embeddings(text)
+    embeddings = openai_utils.generate_text_embeddings(doc["jd_text"])
     pipeline = [
     {
         "$search": {
             "cosmosSearch": {
                 "vector": embeddings,
                 "path": "embeddings",
-                "k": 2
+                "k": 3
             },
             "returnStoredSource": True
         }
@@ -30,16 +33,17 @@ def search_similar(text):
         }
     }
 ]
-    cosmos_util = mongo_utils.CosmosMongoUtil()
+    cosmos_util = mongo_utils.CosmosMongoUtil(collection='candidate_data')
     result = cosmos_util.aggregate_query(pipeline=pipeline)
-    id_list, score_list = [], []
-    response = {"id_list":[],"score_list":[]}
+    response = {"results": [], "total_results": 0}
 
     for doc in result:
-       id_list.append(doc["_id"])
-       score_list.append(doc['similarityScore'])
-    response["id_list"]= id_list
-    response["score_list"]=score_list
+        response["results"].append({
+            "id": doc["_id"],
+            "score": doc['similarityScore']
+        })
+
+    response["total_results"] = len(response["results"])
     return response
 
 
@@ -60,9 +64,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         req_body = req.get_json()
         logging.info(f"Incoming Request - {req_body}")
-        text = req_body["text"]
-        response = search_similar(text=text)
-        
+        job_id = req_body["job_id"]
+        meta_data = req_body["meta_data"]
+        response = search_similar(job_id=job_id)
+        response["meta_data"] = meta_data
         logging.info(response)
 
         return func.HttpResponse(

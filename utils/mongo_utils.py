@@ -57,7 +57,8 @@ class CosmosMongoUtil:
         try:
             document = self.collection.find_one(query)
             if document:
-                logging.info(f"Document found: {document}")
+                document_id = document["_id"]
+                logging.info(f"Document found: {document_id}")
             else:
                 logging.info("No document matches the query")
             return document

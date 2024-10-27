@@ -65,11 +65,10 @@ def construct_response_data(jd_text, container, blob, meta_data = None):
     ).model_dump()
 
     blob_details = {
-         "connection_string": os.environ['AzureWebJobsStorage'],
          "container":container,
          "blob":blob 
     }
-
+    llm_answer["jd_text"] = jd_text
     llm_answer["blob_details"]=blob_details
     llm_answer.update(meta_data)
 

@@ -35,9 +35,6 @@ def process(id):
     response = ai_enrich(doc, linkedin_data)
     return response
 
-def pending_profile_validation():
-    mongo_client
-
 class ResumeFormat(BaseModel):
 
     enriched_data: dict = Field(
