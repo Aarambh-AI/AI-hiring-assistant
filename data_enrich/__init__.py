@@ -25,8 +25,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         req_body = req.get_json()
         logging.info(f"Incoming Request - {req_body}")
         candidate_id = req_body["candidate_id"]
+        meta_data = req_body["meta_data"]
         response = enrich.process(id=candidate_id)
-        
+        response["meta_data"] = meta_data
         logging.info(response)
 
         return func.HttpResponse(
