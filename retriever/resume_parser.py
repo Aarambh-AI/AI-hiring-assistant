@@ -73,7 +73,9 @@ class ResumeFormat(BaseModel):
     linkedin_url: str = Field(
          description=dedent("""\
                             The linkedin url of the candidate from the provided resume.
-                            The url has linkedin.com in it.
+                            The url has linkedin.com in it. 
+                            Add https://www. prefix if not present to the url.
+                            example: https://www.linkedin.com/in/dev-kalra
                     """)
         )
 
