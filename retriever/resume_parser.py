@@ -48,7 +48,7 @@ class ResumeFormat(BaseModel):
         )
     )
 
-    total_experience: str = Field(
+    total_experience: int = Field(
         description=dedent(
             "total experience of the candidate from the provided resume."
         )

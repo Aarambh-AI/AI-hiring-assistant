@@ -10,7 +10,7 @@ openai_client = AzureOpenAI(
     azure_endpoint=os.environ["OAI_BASE_LLM"],
 )
 
-# Patch the OpenAI client
+# Patch the OpenAI client test
 instructor_openai_client = instructor.from_openai(openai_client)
 
 def generate_text_embeddings(text):
