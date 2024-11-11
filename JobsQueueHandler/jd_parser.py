@@ -20,6 +20,11 @@ class ResumeFormat(BaseModel):
               "Key responsibilities and requirements from the provided job description."
          )
     )
+    qualifications: str = Field(
+        description=dedent(
+              "Qualifications required from the provided job description."
+         )
+    )
 
     skills: list = Field(
         description=dedent(

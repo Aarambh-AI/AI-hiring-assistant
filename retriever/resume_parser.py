@@ -5,6 +5,7 @@ import json
 from utils import openai_utils
 import os
 from retriever import profile_fetcher as profile_fetcher
+import datetime
 
 
 class EducationReference(BaseModel):
@@ -50,7 +51,8 @@ class ResumeFormat(BaseModel):
 
     total_experience: int = Field(
         description=dedent(
-            "total experience of the candidate from the provided resume."
+            "Total experience of the candidate from the provided resume, "
+            "expressed as an integer representing years of experience."
         )
     )
 
@@ -145,7 +147,10 @@ def construct_response_data(resume, container, blob, meta_data = None):
          "container":container,
          "blob":blob 
     }
-
+    # Get the current date and time
+    current_datetime = datetime.now()
+    llm_answer["created_timestamp"] = current_datetime
+    llm_answer["modified_timestamp"] = current_datetime
     llm_answer["blob_details"]=blob_details
     candidate_name = llm_answer['name']
     candidate_title = llm_answer['role']
