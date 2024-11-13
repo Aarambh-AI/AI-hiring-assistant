@@ -1,134 +1,60 @@
 from textwrap import dedent
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import List
 import json
 from utils import openai_utils
 import os
 from retriever import profile_fetcher as profile_fetcher
-import datetime
-
+from datetime import datetime
 
 class EducationReference(BaseModel):
-        school: str
-        startDate:str
-        endDate: str
-        percentage: str
-        degree: str
-        specialization: str
-        location: str
-        cgpa: str
+    school: str = Field(default="")
+    startDate: str = Field(default="")
+    endDate: str = Field(default="")
+    percentage: str = Field(default="")
+    degree: str = Field(default="")
+    specialization: str = Field(default="")
+    location: str = Field(default="")
+    cgpa: str = Field(default="")
 
 class WorkReference(BaseModel):
-    companyName: str
-    location: str
-    industry: str
-    title: str
-    startDate: str
-    endDate: str
-    job_description: str
-
-
+    companyName: str = Field(default="")
+    location: str = Field(default="")
+    industry: str = Field(default="")
+    title: str = Field(default="")
+    startDate: str = Field(default="")
+    endDate: str = Field(default="")
+    job_description: str = Field(default="")
 
 class ResumeFormat(BaseModel):
+    name: str = Field(default="", description=dedent("Name of the candidate from the provided resume."))
+    summary: str = Field(default="", description=dedent("A brief summary of the candidate's work experience."))
+    gender: str = Field(default="", description=dedent("Gender of the candidate from the provided resume."))
+    total_experience: int = Field(default=0, description=dedent("Total experience of the candidate in years."))
+    currentemployer: str = Field(default="", description=dedent("The current employer of the candidate from the provided resume."))
+    role: str = Field(default="", description=dedent("The current role of the candidate from the provided resume."))
+    emails: list = Field(default_factory=list, description=dedent("List of email IDs of the candidate from the provided resume."))
+    linkedin_url: str = Field(default="", description=dedent("The LinkedIn URL of the candidate from the provided resume."))
+    currentLocation: str = Field(default="", description=dedent("Current working location of the candidate from the provided resume."))
+    addresses: list = Field(default_factory=list, description=dedent("List of addresses the candidate has worked in from the provided resume."))
+    phones: list = Field(default_factory=list, description=dedent("List of phone numbers of the candidate from the provided resume."))
+    keySkills: list = Field(default_factory=list, description=dedent("List of skills of the candidate from the provided resume."))
+    education: List[EducationReference] = Field(default_factory=list, description=dedent("List of education background from the provided resume."))
+    workbackground: List[WorkReference] = Field(default_factory=list, description=dedent("List of all work backgrounds / projects from the provided resume."))
 
-    name: str = Field(
-        description=dedent(
-            "name of the candidate from the provided resume."
-        )
-    )
-
-    summary: str = Field(
-         description=dedent(
-              "a brief summary of the candidates work experience."
-         )
-    )
-
-    gender: str = Field(
-        description=dedent(
-            "gender of the candidate from the provided resume."
-        )
-    )
-
-    total_experience: int = Field(
-        description=dedent(
-            "Total experience of the candidate from the provided resume, "
-            "expressed as an integer representing years of experience."
-        )
-    )
-
-    currentemployer: str = Field(
-        description=dedent(
-            "the current employer of the candidate from the provided resume."
-        )
-    )
-
-    role: str = Field(
-        description=dedent(
-            "the current role of the candidate from the provided resume."
-        )
-    )
-    emails: list = Field(
-        description=dedent(
-            "list mail ids of the candidate from the provided resume."
-        )
-    )
-    linkedin_url: str = Field(
-         description=dedent("""\
-                            The linkedin url of the candidate from the provided resume.
-                            The url has linkedin.com in it. 
-                            Add https://www. prefix if not present to the url.
-                            example: https://www.linkedin.com/in/dev-kalra
-                    """)
-        )
-
-    currentLocation: str = Field(
-        description=dedent(
-            "Current working location of the candidate from the provided resume."
-        )
-    )
-
-    addresses: list = Field(
-        description=dedent("""\
-            The list of addresses of the candidate worked in from the provided resume.
-            """)
-    )
-
-    phones: list = Field(
-        description=dedent("""\
-            The list of phone numbers of the candidate from the provided resume.
-            """)
-    )
-
-    keySkills: list = Field(
-        description=dedent("""\
-            The list of skills of the candidate from the provided resume.
-            """)
-    )
-
-    education: List[EducationReference] = Field(
-        description=dedent("""\
-            The list of education background from the provided resume.
-            """)
-    )
-    workbackground: List[WorkReference] = Field(
-        description=dedent("""\
-        The list of all work backgrounds / projects from the provided resume.
-        """)
-        )
-
-
-
-def construct_response_data(resume, container, blob, meta_data = None):
+def construct_response_data(resume, container, blob, meta_data=None):
     # STEP 1: Send the question and context to LLM
     system_content = dedent("""
-        You are an expert in parsing resume. extract all the relevant fields only from the provided information.
+        You are an expert in parsing resumes. Extract all the relevant fields only from the provided information.
+        
+        Instructions:
+        1. If you do not find any field in the resume, leave the field empty (use empty string for strings, empty list for lists, and 0 for integers).
         """)
 
     user_content = dedent(f"""
         Resume of the candidate:
         {resume}
-
-                          """)
+    """)
 
     messages = [
         {
@@ -143,7 +69,6 @@ def construct_response_data(resume, container, blob, meta_data = None):
     ).model_dump()
 
     blob_details = {
-         "connection_string": os.environ['AzureWebJobsStorage'],
          "container":container,
          "blob":blob 
     }
