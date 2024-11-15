@@ -3,36 +3,42 @@ from pydantic import BaseModel, Field
 from typing import List, Literal
 from utils import openai_utils
 import os
+from datetime import datetime
 
 
 
 
-class ResumeFormat(BaseModel):
+class JDFormat(BaseModel):
 
     description: str = Field(
         description=dedent(
             "Complete description of the Job from the job description."
         )
     )
-
+    experience: int = Field(default=0, description=dedent("Minimum experience required for the job from the provided job description."))
+    location: str = Field(default="", description=dedent("Location of the job from the provided job description."))
     key_responsibilities: str = Field(
+        default="",
          description=dedent(
               "Key responsibilities and requirements from the provided job description."
          )
     )
     qualifications: str = Field(
+        default="",
         description=dedent(
               "Qualifications required from the provided job description."
          )
     )
 
     skills: list = Field(
+        default=list,
         description=dedent(
             "List of Required skills for the provided job description, If you cannot find anything return null."
         )
     )
 
     job_role: str = Field(
+        default="",
         description=dedent(
             "The role of the job mentioned in the job description"
         )
@@ -66,13 +72,16 @@ def construct_response_data(jd_text, container, blob, meta_data = None):
     ]
 
     llm_answer = openai_utils.generate_llm_response(
-        messages, response_model=ResumeFormat
+        messages, response_model=JDFormat
     ).model_dump()
 
     blob_details = {
          "container":container,
          "blob":blob 
     }
+    current_datetime = datetime.now()
+    llm_answer["created_timestamp"] = current_datetime
+    llm_answer["modified_timestamp"] = current_datetime
     llm_answer["jd_text"] = jd_text
     llm_answer["blob_details"]=blob_details
     llm_answer.update(meta_data)
