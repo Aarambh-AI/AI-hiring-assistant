@@ -47,7 +47,7 @@ class CosmosMongoUtil:
     def insert_multiple_documents(self, documents):
         try:
             result = self.collection.insert_many(documents)
-            logging.info(f"Documents inserted with ids: {result.inserted_ids}")
+            # logging.info(f"Documents inserted with ids: {result.inserted_ids}")
             return result.inserted_ids
         except PyMongoError as e:
             logging.error(f"Error inserting documents: {str(e)}")

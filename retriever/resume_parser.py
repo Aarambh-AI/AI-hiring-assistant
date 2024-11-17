@@ -29,7 +29,7 @@ class WorkReference(BaseModel):
 class ResumeFormat(BaseModel):
     name: str = Field(default="", description=dedent("Name of the candidate from the provided resume."))
     summary: str = Field(default="", description=dedent("A brief summary of the candidate's work experience."))
-    gender: str = Field(default="", description=dedent("Gender of the candidate from the provided resume."))
+    gender: str = Field(default="", description=dedent("""Gender of the candidate from the provided resume. Gender can only have one value from the following list ["Male","Female", "Others"]."""))
     total_experience: int = Field(default=0, description=dedent("Total experience of the candidate in years."))
     currentemployer: str = Field(default="", description=dedent("The current employer of the candidate from the provided resume."))
     role: str = Field(default="", description=dedent("The current role of the candidate from the provided resume."))

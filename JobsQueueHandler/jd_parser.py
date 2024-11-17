@@ -11,6 +11,7 @@ from datetime import datetime
 class JDFormat(BaseModel):
 
     description: str = Field(
+        default="",
         description=dedent(
             "Complete description of the Job from the job description."
         )
@@ -44,7 +45,10 @@ class JDFormat(BaseModel):
         )
     )
 
-
+def generate_embeddings(jd_data, jd_text = None):
+    embeddings = openai_utils.generate_text_embeddings(jd_text)
+    jd_data["embeddings"] = embeddings
+    return jd_data
 
 
 def construct_response_data(jd_text, container, blob, meta_data = None):
@@ -86,8 +90,8 @@ def construct_response_data(jd_text, container, blob, meta_data = None):
     llm_answer["blob_details"]=blob_details
     llm_answer.update(meta_data)
 
-    # json_data = generate_embeddings(llm_answer)
+    jd_data = generate_embeddings(llm_answer, jd_text)
 
     
-    return llm_answer
+    return jd_data
 
