@@ -57,7 +57,8 @@ def search_similar(job_id):
     # Process the result and prepare the response
     for doc in result:
         # Remove the _id from the document before returning it in the results
-        doc_copy = doc.copy()  # Create a copy to avoid modifying the original document
+        doc_copy = doc["document"]
+        # doc_copy = doc.copy()  # Create a copy to avoid modifying the original document
         doc_copy.pop("_id", None)  # Remove _id if it exists
 
         response["results"].append({
@@ -71,7 +72,7 @@ def search_similar(job_id):
             "job_id": job_id,  # Include the job_id to link the result to the original job
             "score":doc['similarityScore'],
             # "candidate_id": doc["candidate_id"],  # Convert ObjectId to string
-            **doc["document"],  # Include all candidate document details (excluding "job_id")
+            **doc_copy,  # Include all candidate document details (excluding "job_id")
             "timestamp": datetime.datetime.utcnow()  # Add a timestamp for when the document was added
         }
 
@@ -80,9 +81,17 @@ def search_similar(job_id):
     # Insert the processed documents into the new collection
     if docs_to_insert:
         try:
+            # Create CosmosMongoUtil instance for 'ai_cache' collection
             new_collection_util = mongo_utils.CosmosMongoUtil(collection='ai_cache')
+
+            # Delete all documents with the same job_id
+            delete_filter = {}
+            new_collection_util.delete_many(delete_filter)  # Delete all docs with the same job_id
+            logging.info(f"Successfully deleted existing documents with job_id {job_id} from the 'ai_cache' collection.")
+
+            # Insert the processed documents into the new collection
             new_collection_util.insert_multiple_documents(docs_to_insert)  # Insert all the documents at once
-            logging.info(f"Successfully inserted {len(docs_to_insert)} documents into the 'search_results' collection.")
+            logging.info(f"Successfully inserted {len(docs_to_insert)} documents into the 'ai_cache' collection.")
         except Exception as e:
             logging.error(f"Error inserting documents into 'search_results': {str(e)}")
     

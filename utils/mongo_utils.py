@@ -90,6 +90,19 @@ class CosmosMongoUtil:
             logging.error(f"Error deleting document: {str(e)}")
             raise
     
+    def delete_many(self,query):
+        try:
+            result = self.collection.delete_many(query)
+            if result.deleted_count > 0:
+                logging.info(f"Documents deleted: {query}")
+            else:
+                logging.info("No documents matches the query")
+            return result.deleted_count
+        except PyMongoError as e:
+            logging.error(f"Error deleting documents: {str(e)}")
+            raise
+
+    
     def aggregate_query(self, pipeline):
         try:
             result = self.collection.aggregate(pipeline)
