@@ -22,8 +22,8 @@ def scrape_data(linkedin_url):
     return response.text
 
 def process(id):
-    objInstance = ObjectId(id)
-    doc = mongo_client.find_document({"_id":objInstance})
+    # objInstance = ObjectId(id)
+    doc = mongo_client.find_document({"candidate_id":id})
     doc.pop('_id', None)  # Removes _id, if present
     doc.pop('embeddings', None)  # Removes embeddings, if present
     doc.pop('blob_details', None)

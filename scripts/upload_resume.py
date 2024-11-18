@@ -12,7 +12,7 @@ batch_size = 100  # Upload 100 files at a time (adjust as needed)
 # Metadata to be added to each file
 # org_id_aarambh = 'org_2n9H2WIXunGn1gktx6zq8ZOnKbO'
 org_id = 'org_2ow5pexgsO0avtK5892cjr1yUry'
-user_id = 'user_2n9H111Gd3ZMsgRHahYFtCnrudZ'
+user_id = 'user_2o3p5auxogLymfD6ZZgwbrWiSjs'
 
 # Initialize the BlobServiceClient
 blob_service_client = BlobServiceClient.from_connection_string(connection_string)
@@ -78,4 +78,4 @@ async def upload_all_files(min_index, max_index):
 # Run the upload process
 if __name__ == '__main__':
     # Specify the range of files to upload (e.g., from file number 50 to 150)
-    asyncio.run(upload_all_files(min_index=100, max_index=200)) 
+    asyncio.run(upload_all_files(min_index=300, max_index=400)) 
