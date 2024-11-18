@@ -56,10 +56,14 @@ def search_similar(job_id):
 
     # Process the result and prepare the response
     for doc in result:
+        # Remove the _id from the document before returning it in the results
+        doc_copy = doc.copy()  # Create a copy to avoid modifying the original document
+        doc_copy.pop("_id", None)  # Remove _id if it exists
+
         response["results"].append({
             "id": doc["_id"],
             "score": doc['similarityScore'],
-            "document": doc["document"]  # Include all fields from the "document"
+            "document": doc_copy  # Include all fields from the "document"
         })
 
         # Prepare the document for insertion into the new collection
