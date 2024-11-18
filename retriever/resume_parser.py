@@ -6,6 +6,7 @@ from utils import openai_utils
 import os
 from retriever import profile_fetcher as profile_fetcher
 from datetime import datetime
+import uuid
 
 class EducationReference(BaseModel):
     school: str = Field(default="")
@@ -74,6 +75,8 @@ def construct_response_data(resume, container, blob, meta_data=None):
     }
     # Get the current date and time
     current_datetime = datetime.now()
+    
+    llm_answer["candidate_id"] = str(uuid.uuid4())  # Add candidate_id to the result
     llm_answer["created_timestamp"] = current_datetime
     llm_answer["modified_timestamp"] = current_datetime
     llm_answer["blob_details"]=blob_details

@@ -65,7 +65,7 @@ def search_similar(job_id):
         # Prepare the document for insertion into the new collection
         doc_to_insert = {
             "job_id": job_id,  # Include the job_id to link the result to the original job
-            "candidate_id": str(doc["_id"]),  # Convert ObjectId to string
+            # "candidate_id": doc["candidate_id"],  # Convert ObjectId to string
             **doc["document"],  # Include all candidate document details (excluding "job_id")
             "timestamp": datetime.datetime.utcnow()  # Add a timestamp for when the document was added
         }

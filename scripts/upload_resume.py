@@ -10,7 +10,8 @@ local_folder_path = r"D:\Aarambh\Vipany Global\data\Resumes"  # Local folder con
 batch_size = 100  # Upload 100 files at a time (adjust as needed)
 
 # Metadata to be added to each file
-org_id = 'org_2n9H2WIXunGn1gktx6zq8ZOnKbO'
+# org_id_aarambh = 'org_2n9H2WIXunGn1gktx6zq8ZOnKbO'
+org_id = 'org_2ow5pexgsO0avtK5892cjr1yUry'
 user_id = 'user_2n9H111Gd3ZMsgRHahYFtCnrudZ'
 
 # Initialize the BlobServiceClient
@@ -49,18 +50,22 @@ async def upload_files_in_batch(batch_files):
         # Wait for all futures to complete
         await asyncio.gather(*futures)
 
-# Function to get all the files from a directory
-def get_files_from_directory(folder_path):
+# Function to get the files from a directory within the specified range (min to max)
+def get_files_from_directory(folder_path, min_index=0, max_index=100):
     files = []
-    for file_name in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, file_name)
-        if os.path.isfile(file_path):
-            files.append((file_path, file_name))
+    # Loop through the directory and add files to the list
+    for i, file_name in enumerate(os.listdir(folder_path)):
+        if min_index <= i < max_index:  # Only add files within the specified range
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                files.append((file_path, file_name))
     return files
 
-# Main function to upload all files in batches
-async def upload_all_files():
-    files = get_files_from_directory(local_folder_path)
+
+# Main function to upload files in batches
+async def upload_all_files(min_index, max_index):
+    # Get files in the specified range (min to max)
+    files = get_files_from_directory(local_folder_path, min_index, max_index)
     total_files = len(files)
     print(f"Total files to upload: {total_files}")
     
@@ -72,4 +77,5 @@ async def upload_all_files():
 
 # Run the upload process
 if __name__ == '__main__':
-    asyncio.run(upload_all_files())
+    # Specify the range of files to upload (e.g., from file number 50 to 150)
+    asyncio.run(upload_all_files(min_index=100, max_index=200)) 
