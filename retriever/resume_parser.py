@@ -80,6 +80,7 @@ def construct_response_data(resume, container, blob, meta_data=None):
     llm_answer["created_timestamp"] = current_datetime
     llm_answer["modified_timestamp"] = current_datetime
     llm_answer["blob_details"]=blob_details
+    llm_answer["source"] = "hiring_bot"
     candidate_name = llm_answer['name']
     candidate_title = llm_answer['role']
     llm_answer.update(meta_data)

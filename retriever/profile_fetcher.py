@@ -1,6 +1,7 @@
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
+import uuid
 
 # Function to fetch LinkedIn profiles based on the user's details
 def fetch_profile(name, title):
@@ -12,12 +13,15 @@ def fetch_profile(name, title):
         
         # Formulate a refined search query targeting LinkedIn URLs
         search_query = f'{title} {name}  site:linkedin.com/in/ -inurl:jobs -inurl:posts -inurl:company'
-        
+
+        quota_user_id = str(uuid.uuid4())  # Generate a unique user ID for each query
+
         # Perform the search request
         res = service.cse().list(
             q=search_query,
             cx=os.environ['CX_KEY'],
-            num=3  # Get the top 3 results
+            num=3,  # Get the top 3 results
+            quotaUser= quota_user_id
         ).execute()
 
         # Check if there are any results
