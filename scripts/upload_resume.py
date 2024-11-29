@@ -78,4 +78,4 @@ async def upload_all_files(min_index, max_index):
 # Run the upload process
 if __name__ == '__main__':
     # Specify the range of files to upload (e.g., from file number 50 to 150)
-    asyncio.run(upload_all_files(min_index=300, max_index=400)) 
+    asyncio.run(upload_all_files(min_index=0, max_index=10)) 

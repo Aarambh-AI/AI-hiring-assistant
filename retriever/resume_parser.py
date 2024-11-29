@@ -1,9 +1,7 @@
 from textwrap import dedent
 from pydantic import BaseModel, Field
 from typing import List
-import json
 from utils import openai_utils
-import os
 from retriever import profile_fetcher as profile_fetcher
 from datetime import datetime
 import uuid
@@ -30,15 +28,15 @@ class WorkReference(BaseModel):
 class ResumeFormat(BaseModel):
     name: str = Field(default="", description=dedent("Name of the candidate from the provided resume."))
     summary: str = Field(default="", description=dedent("A brief summary of the candidate's work experience."))
-    gender: str = Field(default="", description=dedent("""Gender of the candidate from the provided resume. Gender can only have one value from the following list ["Male","Female", "Others"]."""))
+    gender: str = Field(default="", description=dedent("""Identify Gender of the candidate from the provided resume. Gender can only have one value from the following list ["Male","Female", "Others"]."""))
     total_experience: int = Field(default=0, description=dedent("Total experience of the candidate in years."))
     currentemployer: str = Field(default="", description=dedent("The current employer of the candidate from the provided resume."))
     role: str = Field(default="", description=dedent("The current role of the candidate from the provided resume."))
     emails: list = Field(default_factory=list, description=dedent("List of email IDs of the candidate from the provided resume."))
-    linkedin_url: str = Field(default="", description=dedent("The LinkedIn URL of the candidate from the provided resume."))
+    linkedin_url: str = Field(default="", description=dedent("Extract the LinkedIn URL of the candidate from the provided resume. If the URL does not already begin with 'https://', prepend it. For example, if the resume contains 'LinkedIn: www.linkedin.com/in/johndoe', return 'https://www.linkedin.com/in/johndoe'."))
     currentLocation: str = Field(default="", description=dedent("Current working location of the candidate from the provided resume."))
     addresses: list = Field(default_factory=list, description=dedent("List of addresses the candidate has worked in from the provided resume."))
-    phones: list = Field(default_factory=list, description=dedent("List of phone numbers of the candidate from the provided resume."))
+    phones: list = Field(default_factory=list, description=dedent("List the 10-digit phone numbers of the candidate from the provided resume, excluding any country codes (e.g., +91, 91, etc.). For example, from inputs like +91 7797436877 or 917797436877, only return the 10-digit number: 7797436877."))
     keySkills: list = Field(default_factory=list, description=dedent("List of skills of the candidate from the provided resume."))
     education: List[EducationReference] = Field(default_factory=list, description=dedent("List of education background from the provided resume."))
     workbackground: List[WorkReference] = Field(default_factory=list, description=dedent("List of all work backgrounds / projects from the provided resume."))
