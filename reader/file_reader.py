@@ -19,11 +19,26 @@ def convert_docx_to_text(docx_data):
     docx_stream = io.BytesIO(docx_data)
     document = Document(docx_stream)
     text = ""
+    # Extract text and table content
+    full_text = []
     
+    # Process paragraphs
     for para in document.paragraphs:
-        text += para.text + "\n"
+        full_text.append(para.text)
     
-    return text
+    # Process tables
+    for table in document.tables:
+        table_text = []
+        for row in table.rows:
+            row_text = [cell.text for cell in row.cells]
+            table_text.append(' | '.join(row_text))
+        full_text.extend(table_text)
+    
+    return '\n'.join(full_text)
+    # for para in document.paragraphs:
+    #     text += para.text + "\n"
+    
+    # return text
 
 def convert_text_file_to_text(text_data):
     # Directly decode the text file data
