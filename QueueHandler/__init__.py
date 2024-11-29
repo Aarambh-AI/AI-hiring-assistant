@@ -31,8 +31,7 @@ def upload_resume_to_db(json_data):
         # Use upsert to ensure the document is updated or inserted if it doesn't exist
         cosmos_util.update_document(
             {"_id": existing_resume["_id"]}, 
-            {"$set": json_data},  # Use $set to update only the provided fields
-            upsert=True
+            json_data # Use $set to update only the provided fields
         )
         logging.info(f"Resume for {email} in org {org_id} updated.")
     else:
@@ -74,7 +73,7 @@ def main(msg: func.QueueMessage):
             json_data = construct_response_data(resume=file_text, container="resume-files", blob=file_name, meta_data = meta_data)
 
             upload_resume_to_db(json_data=json_data)
-            logging.info(json_data)
+            logging.info("Successfully uploaded resume to Cosmos DB.")
         else:
             logging.error({"error": "Failed to read text from the file"})
 
