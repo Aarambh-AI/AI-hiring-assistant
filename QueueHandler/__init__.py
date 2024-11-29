@@ -8,23 +8,37 @@ import os
 from utils import mongo_utils
 
 def upload_resume_to_db(json_data):
-    # Assuming email is the unique identifier
-    email = json_data.get('emails', [])[0]
+    # Extract email and org_id
+    email = json_data.get('emails', [])[0] if json_data.get('emails') else None
+    org_id = json_data.get('org_id', "")
 
-    if not email:
-        raise ValueError("Resume must contain an email address as a unique identifier.")
+    if not email or not org_id:
+        raise ValueError("Resume must contain an email address and organization ID.")
+    
     cosmos_util = mongo_utils.CosmosMongoUtil(collection="candidate_data")
-    # Check if a document with the same email already exists
-    existing_resume = cosmos_util.find_document({"emails": email})
+    
+    # Create a query to find existing document based on both email and org_id
+    existing_query = {
+        "emails": email,
+        "org_id": org_id
+    }
+    
+    # Check if a document with the same email and org_id exists
+    existing_resume = cosmos_util.find_document(existing_query)
 
     if existing_resume:
         # Update the existing document
-        cosmos_util.update_document({"_id": existing_resume["_id"]}, json_data)
-        logging.info(f"Resume for {email} updated.")
+        # Use upsert to ensure the document is updated or inserted if it doesn't exist
+        cosmos_util.update_document(
+            {"_id": existing_resume["_id"]}, 
+            {"$set": json_data},  # Use $set to update only the provided fields
+            upsert=True
+        )
+        logging.info(f"Resume for {email} in org {org_id} updated.")
     else:
-        # Insert new document
+        # Insert new document if no matching record found
         cosmos_util.insert_document(json_data)
-        logging.info(f"Resume for {email} inserted.")
+        logging.info(f"Resume for {email} in org {org_id} inserted.")
 
 
 
