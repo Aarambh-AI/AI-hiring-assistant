@@ -1,3 +1,7 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure Functions: https://aka.ms/python-webapps-actions
+
 name: Build and deploy Python project to Azure Function App - hiringbot-ai-fn-dev
 
 on:
@@ -32,8 +36,16 @@ jobs:
 
       # Optional: Add step to run tests here
 
-      - name: Zip project for deployment
-        run: zip -r release.zip ./* -x 'venv/*'
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-app
+          path: |
+            release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,7 +55,12 @@ jobs:
       url: ${{ steps.deploy-to-function.outputs.webapp-url }}
 
     steps:
-      - name: Unzip project for deployment
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v3
+        with:
+          name: python-app
+
+      - name: Unzip artifact for deployment
         run: unzip release.zip
 
       - name: 'Deploy to Azure Functions'
