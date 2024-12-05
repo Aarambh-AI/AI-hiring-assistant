@@ -39,7 +39,7 @@ class ResumeFormat(BaseModel):
     phones: list = Field(default_factory=list, description=dedent("List the 10-digit phone numbers of the candidate from the provided resume, excluding any country codes (e.g., +91, 91, etc.). For example, from inputs like +91 7797436877 or 917797436877, only return the 10-digit number: 7797436877."))
     keySkills: list = Field(default_factory=list, description=dedent("List of skills of the candidate from the provided resume."))
     education: List[EducationReference] = Field(default_factory=list, description=dedent("List of education background from the provided resume."))
-    workbackground: List[WorkReference] = Field(default_factory=list, description=dedent("List of all work backgrounds / projects from the provided resume."))
+    workbackground: List[WorkReference] = Field(default_factory=list, description=dedent("List of all work backgrounds and projects from the provided resume."))
 
 def construct_response_data(resume, container, blob, meta_data=None):
     # STEP 1: Send the question and context to LLM

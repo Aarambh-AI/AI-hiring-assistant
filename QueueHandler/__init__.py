@@ -6,6 +6,7 @@ import json
 from azure.storage.blob import BlobServiceClient
 import os
 from utils import mongo_utils
+import traceback
 
 def upload_resume_to_db(json_data):
     # Extract email and org_id
@@ -77,9 +78,9 @@ def main(msg: func.QueueMessage):
         else:
             logging.error({"error": "Failed to read text from the file"})
 
-    except ValueError as e:
-        print(f"Error: {str(e)}")
-
+    except Exception as e:
+        logging.error(f"Error: {str(e)}")
+        traceback.print_exc()
 
     logging.info(result)
 

@@ -6,11 +6,10 @@ from concurrent.futures import ThreadPoolExecutor
 # Constants
 connection_string = "DefaultEndpointsProtocol=https;AccountName=aibackenda97d;AccountKey=gcGuEE/WLn5EOo26z5vtB4Gxj+tw7eD3ULZEIn+06MSsdZDE9GSk2StpnQeXXClIqwryvVHvhUvC+AStYgks/g==;EndpointSuffix=core.windows.net"  # Azure Storage connection string
 container_name = 'resume-files'  # Azure Blob container name
-local_folder_path = r"D:\Aarambh\Vipany Global\data\Resumes"  # Local folder containing files
+local_folder_path = r"D:\Aarambh\Vipany Global\data\resume_set_1"  # Local folder containing files
 batch_size = 100  # Upload 100 files at a time (adjust as needed)
 
 # Metadata to be added to each file
-# org_id_aarambh = 'org_2n9H2WIXunGn1gktx6zq8ZOnKbO'
 org_id = 'org_2ow5pexgsO0avtK5892cjr1yUry'
 user_id = 'user_2o3p5auxogLymfD6ZZgwbrWiSjs'
 
@@ -31,7 +30,7 @@ def upload_file(file_path, file_name):
             }
         # Open the file and upload it to Blob Storage
         with open(file_path, "rb") as data:
-            blob_client.upload_blob(data,metadata=metadata, overwrite=True)
+            blob_client.upload_blob(data, metadata=metadata, overwrite=True)
         
         print(f"File '{file_name}' uploaded successfully.")
     except Exception as e:
@@ -51,7 +50,7 @@ async def upload_files_in_batch(batch_files):
         await asyncio.gather(*futures)
 
 # Function to get the files from a directory within the specified range (min to max)
-def get_files_from_directory(folder_path, min_index=0, max_index=100):
+def get_files_from_directory(folder_path, min_index, max_index):
     files = []
     # Loop through the directory and add files to the list
     for i, file_name in enumerate(os.listdir(folder_path)):
@@ -61,7 +60,6 @@ def get_files_from_directory(folder_path, min_index=0, max_index=100):
                 files.append((file_path, file_name))
     return files
 
-
 # Main function to upload files in batches
 async def upload_all_files(min_index, max_index):
     # Get files in the specified range (min to max)
@@ -70,12 +68,13 @@ async def upload_all_files(min_index, max_index):
     print(f"Total files to upload: {total_files}")
     
     # Process files in batches
+    total_batches = (total_files + batch_size - 1) // batch_size  # Calculate total number of batches
     for i in range(0, total_files, batch_size):
         batch_files = files[i:i + batch_size]
-        print(f"Uploading batch {i//batch_size + 1} of {len(files)//batch_size + 1}...")
+        print(f"Uploading batch {i//batch_size + 1} of {total_batches}...")
         await upload_files_in_batch(batch_files)
 
 # Run the upload process
 if __name__ == '__main__':
     # Specify the range of files to upload (e.g., from file number 50 to 150)
-    asyncio.run(upload_all_files(min_index=0, max_index=10)) 
+    asyncio.run(upload_all_files(min_index=550, max_index=2000))
