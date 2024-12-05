@@ -13,32 +13,40 @@ def upload_resume_to_db(json_data):
     email = json_data.get('emails', [])[0] if json_data.get('emails') else None
     org_id = json_data.get('org_id', "")
 
-    if not email or not org_id:
-        raise ValueError("Resume must contain an email address and organization ID.")
+    # Check if org_id is provided; if not, raise a ValueError
+    if not org_id:
+        raise ValueError("Resume must contain an organization ID.")
     
     cosmos_util = mongo_utils.CosmosMongoUtil(collection="candidate_data")
     
-    # Create a query to find existing document based on both email and org_id
-    existing_query = {
-        "emails": email,
-        "org_id": org_id
-    }
-    
-    # Check if a document with the same email and org_id exists
-    existing_resume = cosmos_util.find_document(existing_query)
-
-    if existing_resume:
-        # Update the existing document
-        # Use upsert to ensure the document is updated or inserted if it doesn't exist
-        cosmos_util.update_document(
-            {"_id": existing_resume["_id"]}, 
-            json_data # Use $set to update only the provided fields
-        )
-        logging.info(f"Resume for {email} in org {org_id} updated.")
-    else:
-        # Insert new document if no matching record found
+    # If email is None, insert the document (new record)
+    if not email:
+        # Insert new document if email is None (new resume with no email)
         cosmos_util.insert_document(json_data)
-        logging.info(f"Resume for {email} in org {org_id} inserted.")
+        logging.info(f"New resume inserted (no email present). Org ID: {org_id}")
+    else:
+        # Create a query to find existing document based on email and org_id
+        existing_query = {
+            "emails": email,
+            "org_id": org_id
+        }
+        
+        # Check if a document with the same email and org_id exists
+        existing_resume = cosmos_util.find_document(existing_query)
+
+        if existing_resume:
+            # Update the existing document if the resume already exists
+            cosmos_util.update_document(
+                {"_id": existing_resume["_id"]}, 
+                json_data  # Use $set to update only the provided fields
+            )
+            logging.info(f"Resume for {email} in org {org_id} updated.")
+        else:
+            # Insert a new document if no matching record found
+            cosmos_util.insert_document(json_data)
+            logging.info(f"Resume for {email} in org {org_id} inserted.")
+
+
 
 
 
