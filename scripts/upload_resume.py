@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 # Constants
 connection_string = "DefaultEndpointsProtocol=https;AccountName=aibackenda97d;AccountKey=gcGuEE/WLn5EOo26z5vtB4Gxj+tw7eD3ULZEIn+06MSsdZDE9GSk2StpnQeXXClIqwryvVHvhUvC+AStYgks/g==;EndpointSuffix=core.windows.net"  # Azure Storage connection string
 container_name = 'resume-files'  # Azure Blob container name
-local_folder_path = r"D:\Aarambh\Vipany Global\data\resume_set_1"  # Local folder containing files
+local_folder_path = r"/Users/shyam/Documents/aarambh/Vipany/cvs/Resume_db_10K"  # Local folder containing files
 batch_size = 100  # Upload 100 files at a time (adjust as needed)
 
 # Metadata to be added to each file
@@ -77,4 +77,4 @@ async def upload_all_files(min_index, max_index):
 # Run the upload process
 if __name__ == '__main__':
     # Specify the range of files to upload (e.g., from file number 50 to 150)
-    asyncio.run(upload_all_files(min_index=2000, max_index=2010))
+    asyncio.run(upload_all_files(min_index=0, max_index=10))
