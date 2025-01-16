@@ -9,40 +9,65 @@ from utils import mongo_utils
 import traceback
 
 def upload_resume_to_db(json_data):
-    # Extract email and org_id
+    """
+    Uploads or updates a resume document in the Cosmos DB database.
+    
+    Args:
+        json_data (dict): Resume data in JSON format containing parsed resume information.
+                         Expected to potentially contain 'emails' and 'org_id' fields.
+    
+    Returns:
+        None
+    
+    Raises:
+        ValueError: If organization ID (org_id) is not provided in the json_data.
+    """
+    # Extract the first email from the emails list if it exists, otherwise None
+    # This handles cases where emails may be missing or empty
     email = json_data.get('emails', [])[0] if json_data.get('emails') else None
+    
+    # Get the organization ID, defaulting to empty string if not found
+    # org_id is required for proper document organization and access control
     org_id = json_data.get('org_id', "")
 
-    # Check if org_id is provided; if not, raise a ValueError
+    # Validate that org_id exists since it's a required field
+    # This ensures data integrity and proper organization attribution
     if not org_id:
         raise ValueError("Resume must contain an organization ID.")
     
+    # Initialize connection to Cosmos DB with the candidate_data collection
+    # This collection stores all resume information
     cosmos_util = mongo_utils.CosmosMongoUtil(collection="candidate_data")
     
-    # If email is None, insert the document (new record)
+    # Handle case where no email is present in the resume
     if not email:
-        # Insert new document if email is None (new resume with no email)
+        # For resumes without emails, we simply insert as new documents
+        # since we cannot track duplicates without an email identifier
         cosmos_util.insert_document(json_data)
         logging.info(f"New resume inserted (no email present). Org ID: {org_id}")
     else:
-        # Create a query to find existing document based on email and org_id
+        # When email exists, we need to check for existing records
+        # Create query to find any existing resume with same email and org_id
+        # This ensures we don't create duplicates within the same organization
         existing_query = {
             "emails": email,
             "org_id": org_id
         }
         
-        # Check if a document with the same email and org_id exists
+        # Query the database to check for existing resume
         existing_resume = cosmos_util.find_document(existing_query)
 
         if existing_resume:
-            # Update the existing document if the resume already exists
+            # If resume exists, update it with new information
+            # This keeps the resume data current while maintaining the same document ID
             cosmos_util.update_document(
                 {"_id": existing_resume["_id"]}, 
-                json_data  # Use $set to update only the provided fields
+                json_data  # Complete document update with new data
             )
             logging.info(f"Resume for {email} in org {org_id} updated.")
         else:
-            # Insert a new document if no matching record found
+            # If no existing resume found, insert as new document
+            # This creates a new record for this email/org combination
             cosmos_util.insert_document(json_data)
             logging.info(f"Resume for {email} in org {org_id} inserted.")
 
@@ -67,7 +92,8 @@ def main(msg: func.QueueMessage):
     }
     file_name = out['filename']
     meta_data = out['metadata']
-    print("output is", out['filename'])
+    
+    logging.info(f"Processing file: {out['filename']}")
 
     storage_connection_string = os.environ['AzureWebJobsStorage']
      # Fetch file content from Blob Storage

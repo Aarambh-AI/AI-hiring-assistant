@@ -6,7 +6,9 @@ def fetch_linkedin_profiles(api_key, search_engine_id, title, name, quota_user):
     query = f'{title} {name} site:linkedin.com/in/ -inurl:jobs -inurl:posts -inurl:company'
     
     # Set up the API URL with quota_user
-    url = f'https://www.googleapis.com/customsearch/v1?key={api_key}&cx={search_engine_id}&q={query}&quotaUser={quota_user}'
+    # url = f'https://www.googleapis.com/customsearch/v1?key={api_key}&cx={search_engine_id}&q={query}&quotaUser={quota_user}'
+
+    url = f'https://customsearch.googleapis.com/customsearch/v1?key={api_key}&cx={search_engine_id}&q={query}&quotaUser={quota_user}'
     
     # Make the request to the Google Custom Search API
     response = requests.get(url)
@@ -18,6 +20,7 @@ def fetch_linkedin_profiles(api_key, search_engine_id, title, name, quota_user):
         
         # Extract the top three LinkedIn profiles
         for item in results.get('items', [])[:3]:  # Get only top 3 results
+            print(item)
             profile_info = {
                 'title': item.get('title'),
                 'link': item.get('link'),
@@ -38,7 +41,7 @@ title_input = 'g sai shyam'  # Example title
 name_input = 'ai/ml lead'  # Example name
 
 # Run the fetch_linkedin_profiles function 120 times with unique quota_user IDs
-for i in range(120):
+for i in range(1):
     quota_user_id = str(uuid.uuid4())  # Generate a unique user ID for each query
     print(f"Run {i + 1} with Quota User ID: {quota_user_id}:")
     
