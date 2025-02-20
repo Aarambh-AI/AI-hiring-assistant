@@ -6,7 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 # Constants
 connection_string = "DefaultEndpointsProtocol=https;AccountName=aibackenda97d;AccountKey=gcGuEE/WLn5EOo26z5vtB4Gxj+tw7eD3ULZEIn+06MSsdZDE9GSk2StpnQeXXClIqwryvVHvhUvC+AStYgks/g==;EndpointSuffix=core.windows.net"  # Azure Storage connection string
 container_name = 'resume-files'  # Azure Blob container name
-local_folder_path = r"/Users/shyam/Downloads/foo2"  # Local folder containing files
+# local_folder_path = r"/Users/shyam/Downloads/foo2"  # Local folder containing files
+local_folder_path = r"/Volumes/Vipany IT/resume extraction/Inbox_files_Anand BLR"
 batch_size = 100  # Upload 100 files at a time (adjust as needed)
 
 # Metadata to be added to each file
