@@ -15,8 +15,8 @@ class CosmosMongoUtil:
 
     def __init__(self):
         if not self._initialized:
-            self.connection_string = "mongodb+srv://mongoadmin:Hiringbot_123@hiringbot-mongo-cluster-dev.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000"
-            self.database_name = "dev_db"
+            self.connection_string = os.environ["MONGO_CONNECTION_STRING"]
+            self.database_name = os.environ["MONGO_DATABASE_NAME"]
             self.client = None
             self.db = None
             self._connect()
