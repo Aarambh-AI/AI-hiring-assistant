@@ -103,9 +103,20 @@ def main(msg: func.QueueMessage):
 
     # Process the blob data (processing logic here)
     try:
+
         file_text = file_reader.convert_file_to_text(file_name, blob_data)
+        
         if file_text:
-            json_data = construct_response_data(resume=file_text, container="resume-files", blob=file_name, meta_data = meta_data)
+            if file_name.lower().endswith(('.xlsx', '.xls')):
+                for candidate in file_text:
+                    json_data = construct_response_data(resume=candidate, container="resume-files", blob=file_name, meta_data = meta_data)
+                    upload_resume_to_db(json_data=json_data)
+            elif file_name.lower().endswith('.csv'):
+                for candidate in file_text:
+                    json_data = construct_response_data(resume=candidate, container="resume-files", blob=file_name, meta_data = meta_data)
+                    upload_resume_to_db(json_data=json_data)
+            else:
+                json_data = construct_response_data(resume=file_text, container="resume-files", blob=file_name, meta_data = meta_data)
 
             upload_resume_to_db(json_data=json_data)
             logging.info("Successfully uploaded resume to Cosmos DB.")
