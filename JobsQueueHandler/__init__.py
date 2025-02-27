@@ -8,23 +8,13 @@ import os
 from utils import mongo_utils
 
 def upload_resume_to_db(json_data):
-    # Assuming email is the unique identifier
-    # email = json_data.get('emails', [])[0]
-
-    # if not email:
-    #     raise ValueError("Resume must contain an email address as a unique identifier.")
-    cosmos_util = mongo_utils.CosmosMongoUtil(collection="job_data")
-    # Check if a document with the same email already exists
-    # existing_resume = cosmos_util.find_document({"emails": email})
-    existing_resume = False
-    if existing_resume:
-        # Update the existing document
-        cosmos_util.update_document({"_id": existing_resume["_id"]}, json_data)
-        logging.info("Job updated in db.")
-    else:
-        # Insert new document
-        cosmos_util.insert_document(json_data)
-        logging.info("Job inserted in db.")
+    # Get the collection instance
+    cosmos_util = mongo_utils.CosmosMongoUtil()
+    collection = cosmos_util.get_collection("job_data")
+    
+    # Insert new document
+    collection.insert_document(json_data)
+    logging.info("Job inserted in db.")
 
 
 

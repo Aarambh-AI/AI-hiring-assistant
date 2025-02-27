@@ -9,95 +9,106 @@ import datetime
 
 # Function to construct a response with consistent structure
 def search_similar(job_id):
-    objInstance = ObjectId(job_id)
-    cosmos_util = mongo_utils.CosmosMongoUtil(collection='job_data')
-    doc = cosmos_util.find_document({"_id":objInstance})
-    
-    embeddings = openai_utils.generate_text_embeddings(doc["jd_text"])
-    # MongoDB Aggregation Pipeline
-    pipeline = [
-        {
-            "$search": {
-                "cosmosSearch": {
-                    "vector": embeddings,
-                    "path": "embeddings",  # Ensure embeddings field is indexed for vector search
-                    "k": 20000  # Reduced the number of results to 500 (adjust based on your needs)
-                },
+    try:
+        # Initialize MongoDB connections
+        cosmos_util = mongo_utils.CosmosMongoUtil()
+        job_collection = cosmos_util.get_collection('job_data')
+        candidate_collection = cosmos_util.get_collection('candidate_data')
+        ai_cache_collection = cosmos_util.get_collection('ai_cache')
+
+        # Fetch job document and generate embeddings
+        doc = job_collection.find_document({"_id": ObjectId(job_id)})
+        if not doc:
+            raise ValueError(f"Job with ID {job_id} not found")
+        
+        embeddings = openai_utils.generate_text_embeddings(doc["jd_text"])
+        
+        # Optimized MongoDB Aggregation Pipeline
+        pipeline = [
+            {
+                "$search": {
+                    "cosmosSearch": {
+                        "vector": embeddings,
+                        "path": "embeddings",
+                        "k": 15000  # Reduced for better performance
+                    },
+                }
+            },
+            {
+                "$project": {
+                    "similarityScore": {"$meta": "searchScore"},
+                    "document": {
+                        "$objectToArray": "$$ROOT"
+                    }
+                }
+            },
+            {
+                "$addFields": {
+                    "document": {
+                        "$filter": {
+                            "input": "$document",
+                            "cond": {"$ne": ["$$this.k", "embeddings"]}
+                        }
+                    }
+                }
+            },
+            {
+                "$addFields": {
+                    "document": {"$arrayToObject": "$document"}
+                }
+            },
+            {
+                "$match": {
+                    "similarityScore": {"$gte": 0.70}  # 75% threshold
+                }
             }
-        },
-        {
-            "$project": {
-                "similarityScore": {"$meta": "searchScore"},
-                "document": "$$ROOT"
-            }
-        },
-        # Exclude the embeddings field using $unset
-        {
-            "$unset": "document.embeddings"  # This removes the embeddings field from the document
-        },
-        # Filter results where similarityScore is above the threshold
-        {
-            "$match": {
-                "similarityScore": {"$gte": 60.0 / 100.0}  # 60% threshold
-            }
-        },
-        # # Optionally, limit the number of results after matching
-        # {
-        #     "$limit": 500  # Limit results to a reasonable number after applying threshold
-        # }
-    ]
+        ]
 
-    cosmos_util = mongo_utils.CosmosMongoUtil(collection='candidate_data')
-    result = cosmos_util.aggregate_query(pipeline=pipeline)
-    response = {"results": [], "total_results": 0}
+        # Process results in batches
+        results = []
+        docs_to_insert = []
+        current_time = datetime.datetime.utcnow()
 
-    # List to hold documents for insertion into new collection
-    docs_to_insert = []
+        for doc in candidate_collection.aggregate_query(pipeline):
+            doc_copy = doc["document"]
+            
+            # Prepare response document
+            results.append({
+                "id": doc["document"].get("_id"),
+                "score": doc['similarityScore'],
+                "document": doc_copy
+            })
 
-    # Process the result and prepare the response
-    for doc in result:
-        # Remove the _id from the document before returning it in the results
-        doc_copy = doc["document"]
-        # doc_copy = doc.copy()  # Create a copy to avoid modifying the original document
-        doc_copy.pop("_id", None)  # Remove _id if it exists
+            # Prepare cache document
+            docs_to_insert.append({
+                "job_id": job_id,
+                "score": doc['similarityScore'],
+                **doc_copy,
+                "timestamp": current_time
+            })
 
-        response["results"].append({
-            "id": doc["_id"],
-            "score": doc['similarityScore'],
-            "document": doc_copy  # Include all fields from the "document"
-        })
+        # Batch process cache updates
+        if docs_to_insert:
+            # Clear existing cache
+            ai_cache_collection.delete_many({"job_id": job_id})
+            
+            # Insert new results in batches
+            batch_size = 1000
+            for i in range(0, len(docs_to_insert), batch_size):
+                batch = docs_to_insert[i:i + batch_size]
+                ai_cache_collection.insert_multiple_documents(batch)
+            
+            logging.info(f"Cached {len(docs_to_insert)} results for job {job_id}")
 
-        # Prepare the document for insertion into the new collection
-        doc_to_insert = {
-            "job_id": job_id,  # Include the job_id to link the result to the original job
-            "score":doc['similarityScore'],
-            # "candidate_id": doc["candidate_id"],  # Convert ObjectId to string
-            **doc_copy,  # Include all candidate document details (excluding "job_id")
-            "timestamp": datetime.datetime.utcnow()  # Add a timestamp for when the document was added
+        return {
+            "results": results,
+            "total_results": len(results),
+            "processing_time": (datetime.datetime.utcnow() - current_time).total_seconds()
         }
 
-        docs_to_insert.append(doc_to_insert)
-
-    # Insert the processed documents into the new collection
-    if docs_to_insert:
-        try:
-            # Create CosmosMongoUtil instance for 'ai_cache' collection
-            new_collection_util = mongo_utils.CosmosMongoUtil(collection='ai_cache')
-
-            # Delete all documents with the same job_id
-            delete_filter = {}
-            new_collection_util.delete_many(delete_filter)  # Delete all docs with the same job_id
-            logging.info(f"Successfully deleted existing documents with job_id {job_id} from the 'ai_cache' collection.")
-
-            # Insert the processed documents into the new collection
-            new_collection_util.insert_multiple_documents(docs_to_insert)  # Insert all the documents at once
-            logging.info(f"Successfully inserted {len(docs_to_insert)} documents into the 'ai_cache' collection.")
-        except Exception as e:
-            logging.error(f"Error inserting documents into 'search_results': {str(e)}")
-    
-
-    response["total_results"] = len(response["results"])
-    return response
+    except Exception as e:
+        logging.error(f"Error in search_similar: {str(e)}")
+        raise
 
 
 

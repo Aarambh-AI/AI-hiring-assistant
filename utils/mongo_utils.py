@@ -4,24 +4,47 @@ import logging
 import os
 
 class CosmosMongoUtil:
-    def __init__(self, collection):
-        self.connection_string = os.environ["MONGO_CONNECTION_STRING"]
-        self.database_name = os.environ["MONGO_DATABASE_NAME"]
-        self.collection_name =collection
-        self.client = None
-        self.db = None
-        self.collection = None
-        self._connect()
+    _instance = None
+    _collections = {}
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CosmosMongoUtil, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if not self._initialized:
+            self.connection_string = "mongodb+srv://mongoadmin:Hiringbot_123@hiringbot-mongo-cluster-dev.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000"
+            self.database_name = "dev_db"
+            self.client = None
+            self.db = None
+            self._connect()
+            self._initialized = True
 
     def _connect(self):
         try:
-            self.client = MongoClient(self.connection_string)
+            # Add SSL configuration
+            self.client = MongoClient(
+                self.connection_string,
+                tlsAllowInvalidCertificates=True  # For development environments
+                # For production, use proper SSL certificates:
+                # ssl_ca_certs='/path/to/ca.pem'  # Uncomment and set proper path in production
+            )
             self.db = self.client[self.database_name]
-            self.collection = self.db[self.collection_name]
             logging.info("Connected to MongoDB")
         except ConnectionFailure as e:
             logging.error(f"Could not connect to MongoDB: {str(e)}")
             raise
+
+    def get_collection(self, collection_name):
+        if collection_name not in self._collections:
+            self._collections[collection_name] = MongoCollection(self.db[collection_name])
+        return self._collections[collection_name]
+
+class MongoCollection:
+    def __init__(self, collection):
+        self.collection = collection
 
     def insert_document(self, document):
         try:
@@ -117,15 +140,21 @@ class CosmosMongoUtil:
 
 if __name__ == "__main__":
     # Example usage
-    connection_string = os.getenv("COSMOS_CONNECTION_STRING")
-    database_name = "your_database_name"
-    collection_name = "your_collection_name"
+    database_name = "dev_data"
+    collection_name = "job_data"
 
-    cosmos_util = CosmosMongoUtil(connection_string, database_name, collection_name)
+    mongo_util = CosmosMongoUtil()
 
+    # Get different collections
+    users_collection = mongo_util.get_collection("job_data")
+    # orders_collection = mongo_util.get_collection("orders")
+
+    # Use collections
+    users_collection.insert_document({"name": "John"})
+    # orders_collection.insert_document({"order_id": "123"})
     # Insert a single document
     doc = {"name": "John Doe", "age": 30, "city": "New York"}
-    cosmos_util.insert_document(doc)
+    users_collection.insert_document(doc)
 
     # Insert multiple documents
     docs = [
@@ -133,11 +162,11 @@ if __name__ == "__main__":
         {"name": "Bob", "age": 35, "city": "Chicago"},
         {"name": "Charlie", "age": 28, "city": "San Francisco"}
     ]
-    cosmos_util.insert_multiple_documents(docs)
+    users_collection.insert_multiple_documents(docs)
 
     # Find a document
     query = {"name": "John Doe"}
-    found_doc = cosmos_util.find_document(query)
+    found_doc = users_collection.find_document(query)
     print(found_doc)
 
     # Delete a doc

@@ -7,7 +7,8 @@ import requests
 import os
 from bson.objectid import ObjectId
 
-mongo_client = CosmosMongoUtil(collection="candidate_data")
+mongo_util = CosmosMongoUtil()
+collection = mongo_util.get_collection("candidate_data")
 
 def scrape_data(linkedin_url):
     url = os.environ["OSINT_URL"]
@@ -22,18 +23,19 @@ def scrape_data(linkedin_url):
     return response.text
 
 def process(id):
-    # objInstance = ObjectId(id)
-    doc = mongo_client.find_document({"candidate_id":id})
-    doc.pop('_id', None)  # Removes _id, if present
-    doc.pop('embeddings', None)  # Removes embeddings, if present
-    doc.pop('blob_details', None)
-    doc.pop('top_linkedin_suggestions', None)
+    doc = collection.find_document({"candidate_id":id})
+    if doc:
+        doc.pop('_id', None)  # Removes _id, if present
+        doc.pop('embeddings', None)  # Removes embeddings, if present
+        doc.pop('blob_details', None)
+        doc.pop('top_linkedin_suggestions', None)
 
-    profile_url = doc["linkedin_url"]
-    linkedin_data = scrape_data(profile_url)
+        profile_url = doc["linkedin_url"]
+        linkedin_data = scrape_data(profile_url)
 
-    response = ai_enrich(doc, linkedin_data)
-    return response
+        response = ai_enrich(doc, linkedin_data)
+        return response
+    return None
 
 class ResumeFormat(BaseModel):
 

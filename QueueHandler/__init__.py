@@ -23,52 +23,43 @@ def upload_resume_to_db(json_data):
         ValueError: If organization ID (org_id) is not provided in the json_data.
     """
     # Extract the first email from the emails list if it exists, otherwise None
-    # This handles cases where emails may be missing or empty
     email = json_data.get('emails', [])[0] if json_data.get('emails') else None
     
     # Get the organization ID, defaulting to empty string if not found
-    # org_id is required for proper document organization and access control
     org_id = json_data.get('org_id', "")
 
     # Validate that org_id exists since it's a required field
-    # This ensures data integrity and proper organization attribution
     if not org_id:
         raise ValueError("Resume must contain an organization ID.")
     
-    # Initialize connection to Cosmos DB with the candidate_data collection
-    # This collection stores all resume information
-    cosmos_util = mongo_utils.CosmosMongoUtil(collection="candidate_data")
+    # Initialize MongoDB utility and get the candidate_data collection
+    mongo_util = mongo_utils.CosmosMongoUtil()
+    collection = mongo_util.get_collection("candidate_data")
     
     # Handle case where no email is present in the resume
     if not email:
-        # For resumes without emails, we simply insert as new documents
-        # since we cannot track duplicates without an email identifier
-        cosmos_util.insert_document(json_data)
+        collection.insert_document(json_data)
         logging.info(f"New resume inserted (no email present). Org ID: {org_id}")
     else:
-        # When email exists, we need to check for existing records
         # Create query to find any existing resume with same email and org_id
-        # This ensures we don't create duplicates within the same organization
         existing_query = {
             "emails": email,
             "org_id": org_id
         }
         
         # Query the database to check for existing resume
-        existing_resume = cosmos_util.find_document(existing_query)
+        existing_resume = collection.find_document(existing_query)
 
         if existing_resume:
             # If resume exists, update it with new information
-            # This keeps the resume data current while maintaining the same document ID
-            cosmos_util.update_document(
+            collection.update_document(
                 {"_id": existing_resume["_id"]}, 
-                json_data  # Complete document update with new data
+                json_data
             )
             logging.info(f"Resume for {email} in org {org_id} updated.")
         else:
             # If no existing resume found, insert as new document
-            # This creates a new record for this email/org combination
-            cosmos_util.insert_document(json_data)
+            collection.insert_document(json_data)
             logging.info(f"Resume for {email} in org {org_id} inserted.")
 
 
