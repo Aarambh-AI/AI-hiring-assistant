@@ -24,44 +24,37 @@ def search_similar(job_id):
         embeddings = openai_utils.generate_text_embeddings(doc["jd_text"])
         
         # Optimized MongoDB Aggregation Pipeline
+        # MongoDB Aggregation Pipeline
         pipeline = [
             {
                 "$search": {
                     "cosmosSearch": {
                         "vector": embeddings,
-                        "path": "embeddings",
-                        "k": 15000  # Reduced for better performance
+                        "path": "embeddings",  # Ensure embeddings field is indexed for vector search
+                        "k": 10000  # Reduced the number of results to 500 (adjust based on your needs)
                     },
                 }
             },
             {
                 "$project": {
                     "similarityScore": {"$meta": "searchScore"},
-                    "document": {
-                        "$objectToArray": "$$ROOT"
-                    }
+                    "document": "$$ROOT"
                 }
             },
+            # Exclude the embeddings field using $unset
             {
-                "$addFields": {
-                    "document": {
-                        "$filter": {
-                            "input": "$document",
-                            "cond": {"$ne": ["$$this.k", "embeddings"]}
-                        }
-                    }
-                }
+                "$unset": "document.embeddings"  # This removes the embeddings field from the document
             },
-            {
-                "$addFields": {
-                    "document": {"$arrayToObject": "$document"}
-                }
-            },
+            # Filter results where similarityScore is above the threshold
             {
                 "$match": {
-                    "similarityScore": {"$gte": 0.70}  # 75% threshold
+                    "similarityScore": {"$gte": 75.0 / 100.0}  # 60% threshold
                 }
-            }
+            },
+            # # Optionally, limit the number of results after matching
+            # {
+            #     "$limit": 500  # Limit results to a reasonable number after applying threshold
+            # }
         ]
 
         # Process results in batches
