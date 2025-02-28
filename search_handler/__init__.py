@@ -72,11 +72,15 @@ def search_similar(job_id):
                 "document": doc_copy
             })
 
-            # Prepare cache document
+            # Prepare cache document - remove _id field to let MongoDB generate a new one
+            cache_doc = doc_copy.copy()
+            if '_id' in cache_doc:
+                del cache_doc['_id']
+            
             docs_to_insert.append({
                 "job_id": job_id,
                 "score": doc['similarityScore'],
-                **doc_copy,
+                **cache_doc,
                 "timestamp": current_time
             })
 
