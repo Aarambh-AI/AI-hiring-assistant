@@ -31,7 +31,7 @@ def search_similar(job_id):
                     "cosmosSearch": {
                         "vector": embeddings,
                         "path": "embeddings",  # Ensure embeddings field is indexed for vector search
-                        "k": 10000  # Reduced the number of results to 500 (adjust based on your needs)
+                        "k": 5000  # Reduced the number of results to 500 (adjust based on your needs)
                     },
                 }
             },
